@@ -1,4 +1,3 @@
-<!-- index.html - 顯示 SBET mNAV 的復古網頁，透過自架中介 API 降低 Twelve Data 用量 -->
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -48,20 +47,23 @@
   </div>
 
   <script>
-    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTO6ExFyN8r3JLHutCpoJFPKdLlFq2yTQxMm_Bf5a5jtYvRF51PfOBcVa2FCIVFEznTxhQKWZQgypyb/pub?gid=0&single=true&output=csv"; // Google Sheets 的 CSV 公開網址
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTO6ExFyN8r3JLHutCpoJFPKdLlFq2yTQxMm_Bf5a5jtYvRF51PfOBcVa2FCIVFEznTxhQKWZQgypyb/pub?gid=0&single=true&output=csv";
 
     async function fetchEthHolding() {
       const res = await fetch(CSV_URL);
       const text = await res.text();
       const lines = text.trim().split("\n");
-      return parseFloat(lines[1]);
+      const row = lines[0].split(',');
+      const rawValue = row[1] || '';
+      const cleaned = rawValue.replace(/[^\d.]/g, '');
+      return parseFloat(cleaned);
     }
 
     async function fetchData() {
       try {
         const [ethAmount, apiRes] = await Promise.all([
           fetchEthHolding(),
-          fetch("/api/sbet-data") // 中介 API，包含 SBET 市值與 ETH 價格
+          fetch("/api/sbet-data")
         ]);
 
         const apiData = await apiRes.json();
@@ -72,8 +74,8 @@
         document.getElementById("ethPrice").innerText = `$${ethPrice}`;
         document.getElementById("ethAmount").innerText = ethAmount;
 
-        const mnav = marketCap / (ethPrice * ethAmount);
-        document.getElementById("mnav").innerText = `$${mnav.toFixed(2)}`;
+        const mnav = marketCap / (ethPrice * ethAmount); // 原樣保留
+        document.getElementById("mnav").innerText = `$${mnav.toFixed(4)}`;
 
       } catch (err) {
         console.error(err);
@@ -82,7 +84,7 @@
     }
 
     fetchData();
-    setInterval(fetchData, 150000); // 每 2 分半更新
+    setInterval(fetchData, 150000);
   </script>
 </body>
 </html>
