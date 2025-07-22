@@ -17,11 +17,13 @@ export default async function handler(req, res) {
     const ethPrice = eth.ethereum.usd;
 
     // 取得 ETH 持有數量（從 Google Sheets）
-    const csvRes = await fetch(SHEET_CSV_URL);
-    const csvText = await csvRes.text();
-    const lines = csvText.trim().split('\n');
-    const ethAmountRow = lines[1] || '';
-    const ethAmount = parseFloat(ethAmountRow.replace(/[^0-9.]/g, '').replace(/,/g, ''));
+// 取得 Google Sheets 上的 ETH 持有量（第 1 列第 2 欄）
+const csvRes = await fetch(SHEET_CSV_URL);
+const csvText = await csvRes.text();
+const lines = csvText.trim().split('\n');
+const row = lines[0].split(',');  // ← 第 1 列
+const ethAmount = parseFloat(row[1]);  // 取第 2 欄（B1）
+
 
     // 計算 ETH 價值與 mNAV
     const ethValue = ethAmount * ethPrice;
