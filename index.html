@@ -1,0 +1,88 @@
+<!-- index.html - 顯示 SBET mNAV 的復古網頁，透過自架中介 API 降低 Twelve Data 用量 -->
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>SBET mNAV 看板</title>
+  <style>
+    body {
+      background: #000;
+      color: #33ff33;
+      font-family: 'Courier New', monospace;
+      padding: 2rem;
+    }
+    .box {
+      border: 3px solid #33ff33;
+      padding: 1rem 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      color: #ff33aa;
+      text-align: center;
+      font-size: 2rem;
+    }
+    .value-label {
+      display: inline-block;
+      width: 200px;
+      color: #99ff99;
+    }
+    .value {
+      font-size: 1.5rem;
+    }
+    #mnav {
+      font-size: 2rem;
+      color: #ffcc00;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>📟 SBET mNAV 看板</h1>
+    <div><span class="value-label">SBET 市值：</span><span class="value" id="marketCap">載入中...</span></div>
+    <div><span class="value-label">ETH 價格：</span><span class="value" id="ethPrice">載入中...</span></div>
+    <div><span class="value-label">ETH 持有量：</span><span class="value" id="ethAmount">載入中...</span></div>
+    <hr>
+    <div class="value-label">➤ mNAV：</div>
+    <div class="value" id="mnav">計算中...</div>
+  </div>
+
+  <script>
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTO6ExFyN8r3JLHutCpoJFPKdLlFq2yTQxMm_Bf5a5jtYvRF51PfOBcVa2FCIVFEznTxhQKWZQgypyb/pub?gid=0&single=true&output=csv"; // Google Sheets 的 CSV 公開網址
+
+    async function fetchEthHolding() {
+      const res = await fetch(CSV_URL);
+      const text = await res.text();
+      const lines = text.trim().split("\n");
+      return parseFloat(lines[1]);
+    }
+
+    async function fetchData() {
+      try {
+        const [ethAmount, apiRes] = await Promise.all([
+          fetchEthHolding(),
+          fetch("/api/sbet-data") // 中介 API，包含 SBET 市值與 ETH 價格
+        ]);
+
+        const apiData = await apiRes.json();
+        const marketCap = parseFloat(apiData.market_cap);
+        const ethPrice = parseFloat(apiData.eth_price);
+
+        document.getElementById("marketCap").innerText = `$${marketCap.toLocaleString()}`;
+        document.getElementById("ethPrice").innerText = `$${ethPrice}`;
+        document.getElementById("ethAmount").innerText = ethAmount;
+
+        const mnav = marketCap / (ethPrice * ethAmount);
+        document.getElementById("mnav").innerText = `$${mnav.toFixed(2)}`;
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("mnav").innerText = "⚠️ 抓取錯誤";
+      }
+    }
+
+    fetchData();
+    setInterval(fetchData, 150000); // 每 2 分半更新
+  </script>
+</body>
+</html>
