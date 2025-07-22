@@ -1,25 +1,41 @@
 export default async function handler(req, res) {
-  const TWELVE_API_KEY = process.env.TWELVE_API_KEY; // 在 Vercel 裡設定環境變數
+  const TWELVE_API_KEY = process.env.TWELVE_API_KEY;
+
+  const TOTAL_SHARES = 99_950_000; // 總發行股數
+  const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTO6ExFyN8r3JLHutCpoJFPKdLlFq2yTQxMm_Bf5a5jtYvRF51PfOBcVa2FCIVFEznTxhQKWZQgypyb/pub?gid=0&single=true&output=csv';
 
   try {
-    const [sbetRes, ethRes] = await Promise.all([
-      fetch(`https://api.twelvedata.com/quote?symbol=SBET&apikey=${TWELVE_API_KEY}`),
-      fetch(`https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd`)
-    ]);
-
+    // 取得 SBET 股價
+    const sbetRes = await fetch(`https://api.twelvedata.com/quote?symbol=SBET&apikey=${TWELVE_API_KEY}`);
     const sbet = await sbetRes.json();
+    const sbetPrice = parseFloat(sbet.close);
+    const marketCap = sbetPrice * TOTAL_SHARES;
+
+    // 取得 ETH 即時價格
+    const ethRes = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
     const eth = await ethRes.json();
+    const ethPrice = eth.ethereum.usd;
 
-    const data = {
-      market_cap: sbet.market_cap,
-      eth_price: eth.ethereum.usd
-    };
+    // 取得 ETH 持有數量（從 Google Sheets）
+    const csvRes = await fetch(SHEET_CSV_URL);
+    const csvText = await csvRes.text();
+    const lines = csvText.trim().split('\n');
+    const ethAmountRow = lines[1] || '';
+    const ethAmount = parseFloat(ethAmountRow.replace(/[^0-9.]/g, '').replace(/,/g, ''));
 
-    res.setHeader('Cache-Control', 's-maxage=150'); // cache 2 分半，減少流量
-    res.status(200).json(data);
+    // 計算 ETH 價值與 mNAV
+    const ethValue = ethAmount * ethPrice;
+    const mnav = ethValue / marketCap;
 
+    res.status(200).json({
+      price: sbetPrice.toFixed(4),
+      market_cap: marketCap.toFixed(0),
+      eth_price: ethPrice.toFixed(2),
+      eth_amount: ethAmount.toFixed(4),
+      mnav: mnav.toFixed(6)
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "API 抓取錯誤" });
+    res.status(500).json({ error: 'Failed to fetch data', details: err.message });
   }
 }
+
