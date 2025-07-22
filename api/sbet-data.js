@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   const TWELVE_API_KEY = process.env.TWELVE_API_KEY;
 
-  const TOTAL_SHARES = 99_950_000; // 總發行股數
+  const TOTAL_SHARES = 99_950_000;
   const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTO6ExFyN8r3JLHutCpoJFPKdLlFq2yTQxMm_Bf5a5jtYvRF51PfOBcVa2FCIVFEznTxhQKWZQgypyb/pub?gid=0&single=true&output=csv';
 
   try {
@@ -16,7 +16,6 @@ export default async function handler(req, res) {
     const eth = await ethRes.json();
     const ethPrice = eth.ethereum.usd;
 
-
     // 取得 Google Sheets 上的 ETH 持有量（第 1 列第 2 欄）
     const csvRes = await fetch(SHEET_CSV_URL);
     const csvText = await csvRes.text();
@@ -25,10 +24,6 @@ export default async function handler(req, res) {
     const rawValue = row[1];
     const ethAmount = parseFloat(rawValue.replace(/[^\d.]/g, ''));
 
- // 取第 2 欄（B1）
-
-
-    // 計算 ETH 價值與 mNAV
     const ethValue = ethAmount * ethPrice;
     const mnav = ethValue / marketCap;
 
@@ -43,4 +38,3 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Failed to fetch data', details: err.message });
   }
 }
-
