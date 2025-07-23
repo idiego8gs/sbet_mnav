@@ -38,13 +38,18 @@
 <body>
   <div class="box">
     <h1>📟 SBET mNAV 看板</h1>
+
+    <div><span class="value-label">SBET 現價：</span><span class="value" id="sbetPrice">載入中...</span></div>
     <div><span class="value-label">SBET 市值：</span><span class="value" id="marketCap">載入中...</span></div>
     <div><span class="value-label">ETH 價格：</span><span class="value" id="ethPrice">載入中...</span></div>
     <div><span class="value-label">ETH 持有量：</span><span class="value" id="ethAmount">載入中...</span></div>
+    <div><span class="value-label">ETH 價值：</span><span class="value" id="ethValue">載入中...</span></div>
+
     <hr>
     <div class="value-label">➤ mNAV：</div>
     <div class="value" id="mnav">計算中...</div>
   </div>
+
 
   <script>
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTO6ExFyN8r3JLHutCpoJFPKdLlFq2yTQxMm_Bf5a5jtYvRF51PfOBcVa2FCIVFEznTxhQKWZQgypyb/pub?gid=0&single=true&output=csv";
