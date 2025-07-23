@@ -1,3 +1,7 @@
+let cachedData = null;
+let cachedAt = 0;
+const CACHE_TIME_MS = 150000; // 2.5 minutes
+
 export default async function handler(req, res) {
   const TWELVE_API_KEY = process.env.TWELVE_API_KEY;
 
@@ -6,6 +10,9 @@ export default async function handler(req, res) {
     'https://docs.google.com/spreadsheets/d/e/2PACX-1vTO6ExFyN8r3JLHutCpoJFPKdLlFq2yTQxMm_Bf5a5jtYvRF51PfOBcVa2FCIVFEznTxhQKWZQgypyb/pub?gid=0&single=true&output=csv';
 
   try {
+    if (cachedData && Date.now() - cachedAt < CACHE_TIME_MS) {
+      return res.status(200).json(cachedData);
+    }
     // 取得 SBET 現價
     const sbetRes = await fetch(
       `https://api.twelvedata.com/quote?symbol=SBET&apikey=${TWELVE_API_KEY}`
@@ -33,15 +40,20 @@ export default async function handler(req, res) {
     const ethValue = ethAmount * ethPrice;
     const mnav = ethValue / marketCap;
 
-    // 回傳 JSON
-    res.status(200).json({
+    const data = {
       price: sbetPrice.toFixed(4),         // SBET 現價
       market_cap: marketCap.toFixed(0),    // 市值
       eth_price: ethPrice.toFixed(2),      // ETH 現價
       eth_amount: ethAmount.toFixed(4),    // ETH 數量
       eth_value: ethValue.toFixed(0),      // ETH 價值
       mnav: mnav.toFixed(6)                // mNAV
-    });
+    };
+
+    cachedData = data;
+    cachedAt = Date.now();
+
+    // 回傳 JSON
+    res.status(200).json(data);
 
   } catch (err) {
     res.status(500).json({

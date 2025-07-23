@@ -2,6 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SBET mNAV 看板</title>
   <style>
     body {
@@ -15,6 +16,8 @@
       padding: 1rem 2rem;
       max-width: 600px;
       margin: auto;
+      width: 100%;
+      box-sizing: border-box;
     }
     h1 {
       color: #ff33aa;
@@ -32,6 +35,24 @@
     #mnav {
       font-size: 2rem;
       color: #ffcc00;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
+      .value-label {
+        width: 130px;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+      .value {
+        font-size: 1.2rem;
+      }
+      #mnav {
+        font-size: 1.5rem;
+      }
     }
   </style>
 </head>
