@@ -72,12 +72,16 @@
         ]);
 
         const apiData = await apiRes.json();
+        const sbetPrice = parseFloat(apiData.price);
         const marketCap = parseFloat(apiData.market_cap);
         const ethPrice = parseFloat(apiData.eth_price);
+        const ethValue = parseFloat(apiData.eth_value);
 
+        document.getElementById("sbetPrice").innerText = `$${sbetPrice}`;
         document.getElementById("marketCap").innerText = `$${marketCap.toLocaleString()}`;
         document.getElementById("ethPrice").innerText = `$${ethPrice}`;
         document.getElementById("ethAmount").innerText = ethAmount;
+        document.getElementById("ethValue").innerText = `$${ethValue.toLocaleString()}`;
 
         const mnav = marketCap / (ethPrice * ethAmount); // 原樣保留
         document.getElementById("mnav").innerText = `$${mnav.toFixed(4)}`;
